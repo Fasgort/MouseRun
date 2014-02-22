@@ -3,7 +3,7 @@ package mouserun.mouse;
 import mouserun.game.*;
 import java.util.*;
 
-public class m14C02Demonophobia extends Mouse {
+public class m14C02Demonos extends Mouse {
 
     private int lastMove = 0;
     private int nextMove = 0;
@@ -15,7 +15,7 @@ public class m14C02Demonophobia extends Mouse {
     private int direccionY;
     
 
-    public m14C02Demonophobia() {
+    public m14C02Demonos() {
         super("Demonophobia");
     }
 
