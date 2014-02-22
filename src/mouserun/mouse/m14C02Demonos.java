@@ -54,6 +54,7 @@ public class m14C02Demonos extends Mouse {
     public m14C02Demonos()
     {
         super("Demonophobia");
+        maze = new HashMap< Pair<Integer, Integer>, mouseNode >();
     }
 
     public int move(Grid currentGrid, Cheese cheese)
