@@ -53,7 +53,7 @@ public class m14C02Demonos extends Mouse {
 
     public m14C02Demonos()
     {
-        super("Demonos");
+        super("Demonophobia");
     }
 
     public int move(Grid currentGrid, Cheese cheese)
@@ -219,8 +219,5 @@ public class m14C02Demonos extends Mouse {
 
  1.- La posición de las casillas se conoce mediante coordenadas "x" e "y", al igual que el queso, por lo que es posible realizar un algoritmo de búsqueda
  que trate de disminuir la distancia entre el queso y el ratón.
-
-
-
 
  */
