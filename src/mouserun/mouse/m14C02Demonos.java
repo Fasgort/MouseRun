@@ -13,9 +13,9 @@ public class m14C02Demonos extends Mouse {
     private int direccionX;
     private int distanciaY;
     private int direccionY;
-    
-    public class mouseNode
-    {
+
+    public class mouseNode {
+
         public int x;
         public int y;
 
@@ -24,8 +24,7 @@ public class m14C02Demonos extends Mouse {
         public boolean left;
         public boolean right;
 
-        public mouseNode(int _x, int _y, boolean _up, boolean _down, boolean _left, boolean _right)
-        {
+        public mouseNode(int _x, int _y, boolean _up, boolean _down, boolean _left, boolean _right) {
             x = _x;
             y = _y;
 
@@ -35,56 +34,50 @@ public class m14C02Demonos extends Mouse {
             right = _right;
         }
     }
-    
-    public class Pair <A, B> 
-    {
+
+    public class Pair<A, B> {
+
         public A first;
         public B second;
 
-        public Pair(A _first, B _second)
-        {
+        public Pair(A _first, B _second) {
             first = _first;
             second = _second;
         }
     }
-    
-    private Map<Pair<Integer, Integer>, mouseNode> maze;
-    
 
-    public m14C02Demonos()
-    {
+    private Map<Pair<Integer, Integer>, mouseNode> maze;
+
+    public m14C02Demonos() {
         super("Demonophobia");
-        maze = new HashMap< Pair<Integer, Integer>, mouseNode >();
+        maze = new HashMap<Pair<Integer, Integer>, mouseNode>();
     }
 
-    public int move(Grid currentGrid, Cheese cheese)
-    {
-        
-        Pair<Integer, Integer> currentPos = new Pair<Integer, Integer> (currentGrid.getX(), currentGrid.getY());
+    public int move(Grid currentGrid, Cheese cheese) {
+
+        Pair<Integer, Integer> currentPos = new Pair<Integer, Integer>(currentGrid.getX(), currentGrid.getY());
         mouseNode currentNode;
-       
-        if(!maze.containsKey(currentPos))
-        {
-             currentNode = new mouseNode( 
-                                           currentGrid.getX(), currentGrid.getY(), 
-                                           currentGrid.canGoUp(), currentGrid.canGoDown(),
-                                           currentGrid.canGoLeft(), currentGrid.canGoRight() 
-                                         );
-        
+
+        if (!maze.containsKey(currentPos)) {
+
+            currentNode = new mouseNode(currentGrid.getX(), currentGrid.getY(),
+                    currentGrid.canGoUp(), currentGrid.canGoDown(),
+                    currentGrid.canGoLeft(), currentGrid.canGoRight());
             maze.put(currentPos, currentNode);
-        }
-        else
-        {
+
+        } else {
             currentNode = maze.get(currentPos);
         }
-        
-        if (countMove >= 30 && bombsLeft != 0) {
-            countMove = 0;
-            bombsLeft--;
-            return Mouse.BOMB;
-        }
 
-        countMove++;
+        if (bombsLeft != 0) {
+            if (countMove >= 30) {
+                countMove = 0;
+                bombsLeft--;
+                return Mouse.BOMB;
+            }
+            countMove++;
+        }
+        
         if (currentGrid.getX() - cheese.getX() >= 0) {
             direccionX = 3;
         } else {
@@ -205,7 +198,7 @@ public class m14C02Demonos extends Mouse {
     public void newCheese() {
 
         lastMove = 0;
-        
+
     }
 
     public void respawned() {
