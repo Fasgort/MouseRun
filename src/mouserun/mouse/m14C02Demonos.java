@@ -161,11 +161,7 @@ public class m14C02Demonos extends Mouse {
 
 /* Cosas importantes:
 
- 1.- Es posible obtener la altura y anchura del mapa, por lo que podemos crear una estructura de datos que consuma
- sólo la memoria mínima necesaria para guardar la totalidad del mapa. Los métodos Maze.getHeight() y Maze.getWidth() nos permite obtener
- estos datos.
-
- 2.- La posición de las casillas se conoce mediante coordenadas "x" e "y", al igual que el queso, por lo que es posible realizar un algoritmo de búsqueda
+ 1.- La posición de las casillas se conoce mediante coordenadas "x" e "y", al igual que el queso, por lo que es posible realizar un algoritmo de búsqueda
  que trate de disminuir la distancia entre el queso y el ratón.
 
 
