@@ -29,6 +29,7 @@ nbactions.xml
 nb-configuration.xml
 
 # Class Files #
+classes/
 *.class
 
 # Package Files #
