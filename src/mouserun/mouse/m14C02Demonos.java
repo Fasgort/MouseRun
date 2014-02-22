@@ -5,14 +5,8 @@ import java.util.*;
 
 public class m14C02Demonos extends Mouse {
 
-    private int lastMove = 0;
-    private int nextMove = 0;
     private int countMove = 0;
     private int bombsLeft = 5;
-    private int distanciaX;
-    private int direccionX;
-    private int distanciaY;
-    private int direccionY;
 
     public class mouseNode {
 
@@ -90,13 +84,9 @@ public class m14C02Demonos extends Mouse {
 
     public void newCheese() {
 
-        lastMove = 0;
-
     }
 
     public void respawned() {
-
-        lastMove = 0;
 
     }
 
