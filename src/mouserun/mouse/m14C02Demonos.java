@@ -14,13 +14,69 @@ public class m14C02Demonos extends Mouse {
     private int distanciaY;
     private int direccionY;
     
+    public class mouseNode
+    {
+        public int x;
+        public int y;
 
-    public m14C02Demonos() {
-        super("Demonophobia");
+        public boolean up;
+        public boolean down;
+        public boolean left;
+        public boolean right;
+
+        public mouseNode(int _x, int _y, boolean _up, boolean _down, boolean _left, boolean _right)
+        {
+            x = _x;
+            y = _y;
+
+            up = _up;
+            down = _up;
+            left = _left;
+            right = _right;
+        }
+    }
+    
+    public class Pair <A, B> 
+    {
+        public A first;
+        public B second;
+
+        public Pair(A _first, B _second)
+        {
+            first = _first;
+            second = _second;
+        }
+    }
+    
+    private Map<Pair<Integer, Integer>, mouseNode> maze;
+    
+
+    public m14C02Demonos()
+    {
+        super("Demonos");
     }
 
-    public int move(Grid currentGrid, Cheese cheese) {
-
+    public int move(Grid currentGrid, Cheese cheese)
+    {
+        
+        Pair<Integer, Integer> currentPos = new Pair<Integer, Integer> (currentGrid.getX(), currentGrid.getY());
+        mouseNode currentNode;
+       
+        if(!maze.containsKey(currentPos))
+        {
+             currentNode = new mouseNode( 
+                                           currentGrid.getX(), currentGrid.getY(), 
+                                           currentGrid.canGoUp(), currentGrid.canGoDown(),
+                                           currentGrid.canGoLeft(), currentGrid.canGoRight() 
+                                         );
+        
+            maze.put(currentPos, currentNode);
+        }
+        else
+        {
+            currentNode = maze.get(currentPos);
+        }
+        
         if (countMove >= 30 && bombsLeft != 0) {
             countMove = 0;
             bombsLeft--;
