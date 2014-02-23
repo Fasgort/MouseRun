@@ -45,17 +45,37 @@ public class m14C02Demonos extends Mouse {
         }
     }
 
-    private class Pair<A, B> {
+    private class Pair<A, B>{
 
         public A first;
         public B second;
 
-        public Pair() {
-        }
-
-        public Pair(A _first, B _second) {
+        public Pair(){}
+        
+        public Pair(A _first, B _second) 
+        {
             first = _first;
             second = _second;
+        } 
+        
+        public boolean equals(Object o) 
+        {
+            if (this == o) return true;
+            if (!(o instanceof Pair)) return false;
+            Pair key = (Pair) o;
+            return first == key.first && second == key.second;
+        }
+        
+        public int hashCode() 
+        {
+            if(first instanceof Integer && second instanceof Integer)
+            {
+                Integer result = (Integer) first;
+                Integer sec = (Integer) second;
+                return result * 1000000 + sec;
+            }
+            
+            return 0;
         }
     }
 
@@ -65,7 +85,7 @@ public class m14C02Demonos extends Mouse {
 
     public m14C02Demonos() {
         super("Demonophobia");
-        maze = new HashMap< Pair<Integer, Integer>, mouseNode>();
+        maze = new HashMap<Pair<Integer, Integer>, mouseNode>();
         camino = new ArrayList();
     }
 
@@ -78,13 +98,13 @@ public class m14C02Demonos extends Mouse {
         Pair<Integer, Integer> currentPos = new Pair<Integer, Integer>(currentGrid.getX(), currentGrid.getY());
         mouseNode currentNode;
 
+        
         if (!maze.containsKey(currentPos)) {
             currentNode = new mouseNode(
                     currentGrid.getX(), currentGrid.getY(),
                     currentGrid.canGoUp(), currentGrid.canGoDown(),
                     currentGrid.canGoLeft(), currentGrid.canGoRight()
             );
-
             maze.put(currentPos, currentNode);
         } else {
             currentNode = maze.get(currentPos);
@@ -108,6 +128,7 @@ public class m14C02Demonos extends Mouse {
 
         if (camino.size() == 0) {
             Pair<Integer, Integer> cheesePos = new Pair<Integer, Integer>(cheese.getX(), cheese.getY());
+
             if (maze.containsKey(cheesePos)) {
                 //busca camino
                 List< Pair<mouseNode, Integer>> abiertos = new ArrayList<>();
@@ -306,6 +327,7 @@ public class m14C02Demonos extends Mouse {
     }
 
     public void newCheese() {
+        System.out.println("Cheese!");
         camino.clear();
         caminoIndex = 0;
     }
