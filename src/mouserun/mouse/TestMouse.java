@@ -1,3 +1,5 @@
+/*
+
 package mouserun.mouse;		
 import mouserun.game.*;		
 import java.util.*;			
@@ -100,3 +102,5 @@ public class TestMouse
 	
 	
 }
+
+*/

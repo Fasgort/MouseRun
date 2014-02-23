@@ -43,70 +43,74 @@ public class m14C02Demonos extends Mouse {
             y = _y;
             explored = false;
         }
+
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof mouseNode)) {
+                return false;
+            }
+            mouseNode node = (mouseNode) o;
+            return x == node.x && y == node.y;
+        }
+
+        public int hashCode() {
+            return x * 10000 + y;
+        }
+
     }
 
-    private class Pair<A, B>{
+    private class Pair<A, B> {
 
         public A first;
         public B second;
 
-        public Pair(){}
-        
-        public Pair(A _first, B _second) 
-        {
+        public Pair() {
+        }
+
+        public Pair(A _first, B _second) {
             first = _first;
             second = _second;
-        } 
-        
-        public boolean equals(Object o) 
-        {
-            if (this == o) return true;
-            if (!(o instanceof Pair)) return false;
+        }
+
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (!(o instanceof Pair)) {
+                return false;
+            }
             Pair key = (Pair) o;
             return first == key.first && second == key.second;
         }
-        
-        public int hashCode() 
-        {
-            if(first instanceof Integer && second instanceof Integer)
-            {
+
+        public int hashCode() {
+            if (first instanceof Integer && second instanceof Integer) {
                 Integer result = (Integer) first;
                 Integer sec = (Integer) second;
                 return result * 1000000 + sec;
             }
-            
+
             return 0;
         }
     }
 
-    private Map<Pair<Integer, Integer>, mouseNode> maze;
-    private List<Integer> camino;
-    private int caminoIndex = 0;
+    private HashMap< Pair<Integer, Integer>, mouseNode> maze;
+    private Queue<Integer> camino;
 
     public m14C02Demonos() {
         super("Demonophobia");
-        maze = new HashMap<Pair<Integer, Integer>, mouseNode>();
-        camino = new ArrayList();
+        maze = new HashMap<>();
+        camino = new LinkedList<>();
     }
 
     public int move(Grid currentGrid, Cheese cheese) {
-        if (caminoIndex == camino.size()) {
-            camino.clear();
-            caminoIndex = 0;
-        }
 
-        Pair<Integer, Integer> currentPos = new Pair<Integer, Integer>(currentGrid.getX(), currentGrid.getY());
+        Pair<Integer, Integer> currentPos = new Pair<>(currentGrid.getX(), currentGrid.getY());
         mouseNode currentNode;
 
-        
-        if (!maze.containsKey(currentPos)) {
-            currentNode = new mouseNode(
-                    currentGrid.getX(), currentGrid.getY(),
-                    currentGrid.canGoUp(), currentGrid.canGoDown(),
-                    currentGrid.canGoLeft(), currentGrid.canGoRight()
-            );
-            maze.put(currentPos, currentNode);
-        } else {
+        if (maze.containsKey(currentPos)) {
             currentNode = maze.get(currentPos);
             if (!currentNode.explored) {
                 currentNode.down = currentGrid.canGoDown();
@@ -114,6 +118,14 @@ public class m14C02Demonos extends Mouse {
                 currentNode.left = currentGrid.canGoLeft();
                 currentNode.right = currentGrid.canGoRight();
             }
+        } else {
+            currentNode = new mouseNode(
+                    currentGrid.getX(), currentGrid.getY(),
+                    currentGrid.canGoUp(), currentGrid.canGoDown(),
+                    currentGrid.canGoLeft(), currentGrid.canGoRight()
+            );
+
+            maze.put(currentPos, currentNode);
         }
 
         if (bombsLeft != 0) {
@@ -126,62 +138,83 @@ public class m14C02Demonos extends Mouse {
             }
         }
 
-        if (camino.size() == 0) {
-            Pair<Integer, Integer> cheesePos = new Pair<Integer, Integer>(cheese.getX(), cheese.getY());
-
+        if (camino.isEmpty()) {
+            Pair<Integer, Integer> cheesePos = new Pair<>(cheese.getX(), cheese.getY());
             if (maze.containsKey(cheesePos)) {
                 //busca camino
-                List< Pair<mouseNode, Integer>> abiertos = new ArrayList<>();
-                List< Pair<mouseNode, Integer>> cerrados = new ArrayList<>();
-                Pair<Integer, Integer> initPos = new Pair<>(currentNode.x, currentNode.y);
+                System.out.println("Buscando camino!");
+                Queue< mouseNode> q = new LinkedList<>();
+                List< mouseNode> visitados = new ArrayList<>();
 
-                abiertos.add(new Pair<mouseNode, Integer>(currentNode, 0));
+                q.add(currentNode);
+                visitados.add(currentNode);
 
-                while (true) {
-                    if (abiertos.size() == 0) {
+                while (!q.isEmpty()) {
+                    mouseNode v = q.poll(); // Eeeh? Esto suele devolver null...
+                    Pair<Integer, Integer> pos = new Pair<>(v.x, v.y);
+
+                    if (v.x == cheese.getX() && v.y == cheese.getY()) { // Y si v vale null... pum.
+                        System.out.println("DONE!");
+                        for (int i = 0; i < visitados.size(); i++) {
+                            System.out.println("X: " + visitados.get(i).x + " Y: " + visitados.get(i).y);
+                        }
+                        //return Mouse.BOMB;     
                         break;
                     }
 
-                    int minIndex = getMinIndex(abiertos, initPos);
-                    cerrados.add(abiertos.get(minIndex));
-                    abiertos.clear();
-                    mouseNode lastNode = cerrados.get(cerrados.size() - 1).first;
+                    mouseNode w;
 
-                    if (lastNode.x == cheesePos.first && lastNode.y == cheesePos.second) {
-                        cerrados.remove(0);
-                        for (int i = 0; i < cerrados.size(); i++) {
-                            camino.add(cerrados.get(i).second);
+                    //UP
+                    if (v.up) {
+                        w = maze.get(new Pair<>(pos.first, pos.second + 1));
+                        if (w != null) {
+                            if (!visitados.contains(w)) {
+                                visitados.add(w);
+                                q.add(w);
+                                camino.add(Mouse.UP);
+                            }
                         }
+                    }
 
-                        break;
-                    } else {
-                        Pair<mouseNode, Integer> insert = new Pair<>();
-                        Pair<Integer, Integer> lastPos = new Pair<>(lastNode.x, lastNode.y);
+                    //DOWN
+                    if (v.down) {
+                        w = maze.get(new Pair<>(pos.first, pos.second - 1));
+                        if (w != null) {
+                            if (!visitados.contains(w)) {
+                                visitados.add(w);
+                                q.add(w);
+                                camino.add(Mouse.DOWN);
+                            }
+                        }
+                    }
 
-                        if (lastNode.down) {
-                            insert.first = maze.get(new Pair<Integer, Integer>(lastPos.first, lastPos.second - 1));
-                            insert.second = Mouse.DOWN;
-                            abiertos.add(insert);
+                    //LEFT
+                    if (v.left) {
+                        w = maze.get(new Pair<>(pos.first - 1, pos.second));
+                        if (w != null) {
+                            if (!visitados.contains(w)) {
+                                visitados.add(w);
+                                q.add(w);
+                                camino.add(Mouse.LEFT);
+                            }
                         }
-                        if (lastNode.up) {
-                            insert.first = maze.get(new Pair<Integer, Integer>(lastPos.first, lastPos.second + 1));
-                            insert.second = Mouse.UP;
-                            abiertos.add(insert);
-                        }
-                        if (lastNode.left) {
-                            insert.first = maze.get(new Pair<Integer, Integer>(lastPos.first - 1, lastPos.second));
-                            insert.second = Mouse.LEFT;
-                            abiertos.add(insert);
-                        }
-                        if (lastNode.right) {
-                            insert.first = maze.get(new Pair<Integer, Integer>(lastPos.first + 1, lastPos.second));
-                            insert.second = Mouse.RIGHT;
-                            abiertos.add(insert);
+                    }
+                    //RIGHT
+                    if (v.right) {
+                        w = maze.get(new Pair<>(pos.first + 1, pos.second));
+                        if (w != null) {
+                            if (!visitados.contains(w)) {
+                                visitados.add(w);
+                                q.add(w);
+                                camino.add(Mouse.RIGHT);
+                            }
                         }
                     }
                 }
+
             } else {
                 //explorar
+                System.out.println("Explorando!");
                 if (currentGrid.getX() - cheese.getX() >= 0) {
                     direccionX = 3;
                 } else {
@@ -271,7 +304,7 @@ public class m14C02Demonos extends Mouse {
                 }
 
                 Random random = new Random();
-                ArrayList<Integer> possibleMoves = new ArrayList<Integer>();
+                ArrayList<Integer> possibleMoves = new ArrayList<>();
 
                 if (currentGrid.canGoUp()) {
                     possibleMoves.add(Mouse.UP);
@@ -298,8 +331,8 @@ public class m14C02Demonos extends Mouse {
                 }
             }
         }
-
-        return camino.get(caminoIndex++);
+        System.out.println("Recorriendo camino!");
+        return camino.poll();
     }
 
     public double getDistance(Pair<Integer, Integer> a, Pair<Integer, Integer> b) {
@@ -327,13 +360,10 @@ public class m14C02Demonos extends Mouse {
     }
 
     public void newCheese() {
-        System.out.println("Cheese!");
         camino.clear();
-        caminoIndex = 0;
     }
 
     public void respawned() {
         camino.clear();
-        caminoIndex = 0;
     }
 }
