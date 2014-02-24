@@ -32,7 +32,7 @@ public class m14C02Demonos extends Mouse {
             y = _y;
 
             up = _up;
-            down = _up;
+            down = _down;
             left = _left;
             right = _right;
             explored = true;
@@ -57,6 +57,10 @@ public class m14C02Demonos extends Mouse {
 
         public int hashCode() {
             return x * 10000 + y;
+        }
+
+        public String toString() {
+            return "X: " + x + " Y: " + y;
         }
 
     }
@@ -94,19 +98,22 @@ public class m14C02Demonos extends Mouse {
 
             return 0;
         }
+
+        public String toString() {
+            return "X: " + first + " Y: " + second;
+        }
     }
 
     private HashMap< Pair<Integer, Integer>, mouseNode> maze;
-    private Queue<Integer> camino;
+    private Stack<mouseNode> camino;
 
     public m14C02Demonos() {
         super("Demonophobia");
         maze = new HashMap<>();
-        camino = new LinkedList<>();
+        camino = new Stack<>();
     }
 
     public int move(Grid currentGrid, Cheese cheese) {
-
         Pair<Integer, Integer> currentPos = new Pair<>(currentGrid.getX(), currentGrid.getY());
         mouseNode currentNode;
 
@@ -133,32 +140,53 @@ public class m14C02Demonos extends Mouse {
                 countMove = 0;
                 bombsLeft--;
                 return Mouse.BOMB;
-            } else {
-                countMove++;
             }
+            countMove++;
         }
 
         if (camino.isEmpty()) {
             Pair<Integer, Integer> cheesePos = new Pair<>(cheese.getX(), cheese.getY());
-            if (maze.containsKey(cheesePos)) {
+            if (maze.containsKey(cheesePos)) //  if(false)
+            {
                 //busca camino
-                System.out.println("Buscando camino!");
+
                 Queue< mouseNode> q = new LinkedList<>();
-                List< mouseNode> visitados = new ArrayList<>();
+                Stack< mouseNode> visitados = new Stack<>();
 
                 q.add(currentNode);
                 visitados.add(currentNode);
+                HashMap< mouseNode, mouseNode> anterior = new HashMap<>();
 
+                //System.out.println("Entra con: " + currentNode);
                 while (!q.isEmpty()) {
-                    mouseNode v = q.poll(); // Eeeh? Esto suele devolver null...
+                    mouseNode v = q.poll();
                     Pair<Integer, Integer> pos = new Pair<>(v.x, v.y);
 
-                    if (v.x == cheese.getX() && v.y == cheese.getY()) { // Y si v vale null... pum.
+                    if (v.x == cheese.getX() && v.y == cheese.getY()) {
                         System.out.println("DONE!");
-                        for (int i = 0; i < visitados.size(); i++) {
-                            System.out.println("X: " + visitados.get(i).x + " Y: " + visitados.get(i).y);
+                        camino.add(maze.get(cheesePos));
+
+                        System.out.println("Anterior de " + v);
+                        mouseNode e = anterior.get(v);
+
+                        System.out.println("Anterior: " + e);
+                        while (true) {
+                            //   System.out.println("BUCLE: " + w.first);
+                            if (e == currentNode) {
+                                System.out.println("FIN BUCLE");
+                                break;
+                            }
+                            camino.add(e);
+
+                            if (e == null) {
+                                camino.clear();
+                                break;
+                            }
+
+                            System.out.println("GUARDADO: " + e);
+                            e = anterior.get(e);
                         }
-                        //return Mouse.BOMB;     
+
                         break;
                     }
 
@@ -166,197 +194,75 @@ public class m14C02Demonos extends Mouse {
 
                     //UP
                     if (v.up) {
-                        w = maze.get(new Pair<>(pos.first, pos.second + 1));
-                        if (w != null) {
+                        if (maze.containsKey(new Pair<>(pos.first, pos.second + 1))) {
+                            w = maze.get(new Pair<>(pos.first, pos.second + 1));
+                            System.out.println("W: " + w);
                             if (!visitados.contains(w)) {
                                 visitados.add(w);
                                 q.add(w);
-                                camino.add(Mouse.UP);
+                                anterior.put(w, v);
                             }
                         }
                     }
 
                     //DOWN
                     if (v.down) {
-                        w = maze.get(new Pair<>(pos.first, pos.second - 1));
-                        if (w != null) {
+                        if (maze.containsKey(new Pair<>(pos.first, pos.second - 1))) {
+                            w = maze.get(new Pair<>(pos.first, pos.second - 1));
+                            System.out.println("W: " + w);
                             if (!visitados.contains(w)) {
                                 visitados.add(w);
                                 q.add(w);
-                                camino.add(Mouse.DOWN);
+                                anterior.put(w, v);
                             }
                         }
                     }
 
-                    //LEFT
+                    //LEFT                  
                     if (v.left) {
-                        w = maze.get(new Pair<>(pos.first - 1, pos.second));
-                        if (w != null) {
+                        if (maze.containsKey(new Pair<>(pos.first - 1, pos.second))) {
+                            w = maze.get(new Pair<>(pos.first - 1, pos.second));
+                            System.out.println("W: " + w);
                             if (!visitados.contains(w)) {
                                 visitados.add(w);
                                 q.add(w);
-                                camino.add(Mouse.LEFT);
+                                anterior.put(w, v);
                             }
                         }
                     }
-                    //RIGHT
+                    //RIGHT                   
                     if (v.right) {
-                        w = maze.get(new Pair<>(pos.first + 1, pos.second));
-                        if (w != null) {
+                        if (maze.containsKey(new Pair<>(pos.first + 1, pos.second))) {
+                            w = maze.get(new Pair<>(pos.first + 1, pos.second));
                             if (!visitados.contains(w)) {
                                 visitados.add(w);
                                 q.add(w);
-                                camino.add(Mouse.RIGHT);
+                                anterior.put(w, v);
                             }
                         }
                     }
                 }
+            }
+        }
 
+        System.out.println("Mi pos: " + currentPos);
+        if (!camino.isEmpty()) // if(false)
+        {
+            mouseNode w = camino.pop();
+            Pair<Integer, Integer> target = new Pair<>(w.x, w.y);
+
+            if (target.second - 1 == currentPos.second) {
+                return Mouse.UP;
+            } else if (target.second + 1 == currentPos.second) {
+                return Mouse.DOWN;
+            } else if (target.first - 1 == currentPos.first) {
+                return Mouse.RIGHT;
             } else {
-                //explorar
-                System.out.println("Explorando!");
-                if (currentGrid.getX() - cheese.getX() >= 0) {
-                    direccionX = 3;
-                } else {
-                    direccionX = 4;
-                }
-                distanciaX = Math.abs(currentGrid.getX() - cheese.getX());
-                if (currentGrid.getY() - cheese.getY() >= 0) {
-                    direccionY = 2;
-                } else {
-                    direccionY = 1;
-                }
-                distanciaY = Math.abs(currentGrid.getY() - cheese.getY());
-
-                switch (lastMove) {
-                    case 1:
-                        lastMove = 2;
-                        break;
-                    case 2:
-                        lastMove = 1;
-                        break;
-                    case 3:
-                        lastMove = 4;
-                        break;
-                    case 4:
-                        lastMove = 3;
-                        break;
-                }
-
-                if (distanciaX >= distanciaY) {
-                    switch (direccionX) {
-                        case 3:
-                            if (currentGrid.canGoLeft() && lastMove != 3) {
-                                lastMove = 3;
-                                return Mouse.LEFT;
-                            }
-                            break;
-                        case 4:
-                            if (currentGrid.canGoRight() && lastMove != 4) {
-                                lastMove = 4;
-                                return Mouse.RIGHT;
-                            }
-                            break;
-                    }
-                    switch (direccionY) {
-                        case 1:
-                            if (currentGrid.canGoUp() && lastMove != 1) {
-                                lastMove = 1;
-                                return Mouse.UP;
-                            }
-                            break;
-                        case 2:
-                            if (currentGrid.canGoDown() && lastMove != 2) {
-                                lastMove = 2;
-                                return Mouse.DOWN;
-                            }
-                            break;
-                    }
-                } else {
-                    switch (direccionY) {
-                        case 1:
-                            if (currentGrid.canGoUp() && lastMove != 1) {
-                                lastMove = 1;
-                                return Mouse.UP;
-                            }
-                            break;
-                        case 2:
-                            if (currentGrid.canGoDown() && lastMove != 2) {
-                                lastMove = 2;
-                                return Mouse.DOWN;
-                            }
-                            break;
-                    }
-                    switch (direccionX) {
-                        case 3:
-                            if (currentGrid.canGoLeft() && lastMove != 3) {
-                                lastMove = 3;
-                                return Mouse.LEFT;
-                            }
-                            break;
-                        case 4:
-                            if (currentGrid.canGoRight() && lastMove != 4) {
-                                lastMove = 4;
-                                return Mouse.RIGHT;
-                            }
-                            break;
-                    }
-                }
-
-                Random random = new Random();
-                ArrayList<Integer> possibleMoves = new ArrayList<>();
-
-                if (currentGrid.canGoUp()) {
-                    possibleMoves.add(Mouse.UP);
-                }
-                if (currentGrid.canGoDown()) {
-                    possibleMoves.add(Mouse.DOWN);
-                }
-                if (currentGrid.canGoLeft()) {
-                    possibleMoves.add(Mouse.LEFT);
-                }
-                if (currentGrid.canGoRight()) {
-                    possibleMoves.add(Mouse.RIGHT);
-                }
-
-                if (possibleMoves.size() == 1) {
-                    lastMove = possibleMoves.get(0);
-                    return possibleMoves.get(0);
-                } else {
-                    do {
-                        nextMove = possibleMoves.get(random.nextInt(possibleMoves.size()));
-                    } while (nextMove == lastMove);
-                    lastMove = nextMove;
-                    return lastMove;
-                }
+                return Mouse.LEFT;
             }
+        } else {
+            return explorar(currentGrid, cheese);
         }
-        System.out.println("Recorriendo camino!");
-        return camino.poll();
-    }
-
-    public double getDistance(Pair<Integer, Integer> a, Pair<Integer, Integer> b) {
-        return Math.sqrt(
-                (b.first - a.first) * (b.first - a.first)
-                + (b.second - a.second) * (b.second - a.second)
-        );
-    }
-
-    public int getMinIndex(List< Pair<mouseNode, Integer>> abiertos, Pair<Integer, Integer> target) {
-        double minDist = 9e99;
-        int minIndex = 0;
-
-        for (int i = 0; i < abiertos.size(); i++) {
-            Pair<Integer, Integer> curPos = new Pair<>(abiertos.get(i).first.x, abiertos.get(i).first.y);
-            double curDist = getDistance(curPos, target);
-
-            if (curDist < minDist) {
-                minDist = curDist;
-                minIndex = i;
-            }
-        }
-
-        return minIndex;
     }
 
     public void newCheese() {
@@ -366,4 +272,122 @@ public class m14C02Demonos extends Mouse {
     public void respawned() {
         camino.clear();
     }
+
+    private int explorar(Grid currentGrid, Cheese cheese) {
+        if (currentGrid.getX() - cheese.getX() >= 0) {
+            direccionX = 3;
+        } else {
+            direccionX = 4;
+        }
+        distanciaX = Math.abs(currentGrid.getX() - cheese.getX());
+        if (currentGrid.getY() - cheese.getY() >= 0) {
+            direccionY = 2;
+        } else {
+            direccionY = 1;
+        }
+        distanciaY = Math.abs(currentGrid.getY() - cheese.getY());
+
+        switch (lastMove) {
+            case 1:
+                lastMove = 2;
+                break;
+            case 2:
+                lastMove = 1;
+                break;
+            case 3:
+                lastMove = 4;
+                break;
+            case 4:
+                lastMove = 3;
+                break;
+        }
+
+        if (distanciaX >= distanciaY) {
+            switch (direccionX) {
+                case 3:
+                    if (currentGrid.canGoLeft() && lastMove != 3) {
+                        lastMove = 3;
+                        return Mouse.LEFT;
+                    }
+                    break;
+                case 4:
+                    if (currentGrid.canGoRight() && lastMove != 4) {
+                        lastMove = 4;
+                        return Mouse.RIGHT;
+                    }
+                    break;
+            }
+            switch (direccionY) {
+                case 1:
+                    if (currentGrid.canGoUp() && lastMove != 1) {
+                        lastMove = 1;
+                        return Mouse.UP;
+                    }
+                    break;
+                case 2:
+                    if (currentGrid.canGoDown() && lastMove != 2) {
+                        lastMove = 2;
+                        return Mouse.DOWN;
+                    }
+                    break;
+            }
+        } else {
+            switch (direccionY) {
+                case 1:
+                    if (currentGrid.canGoUp() && lastMove != 1) {
+                        lastMove = 1;
+                        return Mouse.UP;
+                    }
+                    break;
+                case 2:
+                    if (currentGrid.canGoDown() && lastMove != 2) {
+                        lastMove = 2;
+                        return Mouse.DOWN;
+                    }
+                    break;
+            }
+            switch (direccionX) {
+                case 3:
+                    if (currentGrid.canGoLeft() && lastMove != 3) {
+                        lastMove = 3;
+                        return Mouse.LEFT;
+                    }
+                    break;
+                case 4:
+                    if (currentGrid.canGoRight() && lastMove != 4) {
+                        lastMove = 4;
+                        return Mouse.RIGHT;
+                    }
+                    break;
+            }
+        }
+
+        Random random = new Random();
+        ArrayList<Integer> possibleMoves = new ArrayList<>();
+
+        if (currentGrid.canGoUp()) {
+            possibleMoves.add(Mouse.UP);
+        }
+        if (currentGrid.canGoDown()) {
+            possibleMoves.add(Mouse.DOWN);
+        }
+        if (currentGrid.canGoLeft()) {
+            possibleMoves.add(Mouse.LEFT);
+        }
+        if (currentGrid.canGoRight()) {
+            possibleMoves.add(Mouse.RIGHT);
+        }
+
+        if (possibleMoves.size() == 1) {
+            lastMove = possibleMoves.get(0);
+            return possibleMoves.get(0);
+        } else {
+            do {
+                nextMove = possibleMoves.get(random.nextInt(possibleMoves.size()));
+            } while (nextMove == lastMove);
+            lastMove = nextMove;
+            return lastMove;
+        }
+    }
+
 }
