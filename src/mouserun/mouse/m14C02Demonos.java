@@ -140,8 +140,9 @@ public class m14C02Demonos extends Mouse {
                 countMove = 0;
                 bombsLeft--;
                 return Mouse.BOMB;
-            } else
-            countMove++;
+            } else {
+                countMove++;
+            }
         }
 
         if (camino.isEmpty()) {
@@ -218,7 +219,7 @@ public class m14C02Demonos extends Mouse {
                         }
                     }
 
-                    //LEFT                  
+                    //LEFT
                     if (v.left) {
                         if (maze.containsKey(new Pair<>(pos.first - 1, pos.second))) {
                             w = maze.get(new Pair<>(pos.first - 1, pos.second));
@@ -230,7 +231,7 @@ public class m14C02Demonos extends Mouse {
                             }
                         }
                     }
-                    //RIGHT                   
+                    //RIGHT
                     if (v.right) {
                         if (maze.containsKey(new Pair<>(pos.first + 1, pos.second))) {
                             w = maze.get(new Pair<>(pos.first + 1, pos.second));
