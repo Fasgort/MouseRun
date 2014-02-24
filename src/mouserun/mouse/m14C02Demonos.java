@@ -140,7 +140,7 @@ public class m14C02Demonos extends Mouse {
                 countMove = 0;
                 bombsLeft--;
                 return Mouse.BOMB;
-            }
+            } else
             countMove++;
         }
 
