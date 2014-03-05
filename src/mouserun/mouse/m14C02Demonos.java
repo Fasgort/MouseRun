@@ -217,7 +217,12 @@ public class m14C02Demonos extends Mouse {
                 moveCount = 0;
                 return Mouse.BOMB;
             } else {
-                moveCount++;
+                if (moveCount > 100 && exitCount > 2) {
+                    moveCount = 0;
+                    return Mouse.BOMB;
+                } else {
+                    moveCount++;
+                }
             }
         }
 
@@ -323,7 +328,6 @@ public class m14C02Demonos extends Mouse {
              }
              }
              */
-            
             if (v.getPos() == target) {
                 break;
             }
@@ -463,12 +467,16 @@ public class m14C02Demonos extends Mouse {
 
         double percentMapExplored = maze.size() / tamMap;
         double distQueso = Math.sqrt(
-         (target.first - init.getPos().first) * (target.first - init.getPos().first)
-         + (target.second - init.getPos().second) * (target.second - init.getPos().second)
-         );
+                (target.first - init.getPos().first) * (target.first - init.getPos().first)
+                + (target.second - init.getPos().second) * (target.second - init.getPos().second)
+        );
         int costeCasilla = init.distancia;
 
-        return (1-percentMapExplored)*distQueso + percentMapExplored*costeCasilla;
+        if (costeCasilla <= 1) {
+            distQueso = distQueso * 0.01;
+        }
+
+        return (1 - percentMapExplored) * distQueso + percentMapExplored * costeCasilla;
     }
 
     private int getDirection(Pair<Integer, Integer> init, Pair<Integer, Integer> target) {
