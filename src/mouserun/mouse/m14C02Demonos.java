@@ -258,6 +258,7 @@ public class m14C02Demonos extends Mouse {
         w = new mouseNode(target);
         q.add(w);
         visitados.add(w);
+        noExploradasArea.add(w);
 
         while (!q.isEmpty()) {
             mouseNode v = q.poll();
