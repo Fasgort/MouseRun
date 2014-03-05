@@ -140,7 +140,6 @@ public class m14C02Demonos extends Mouse {
 
     private Pair<Integer, Integer> borderMap;
     private int tamMap = 25;
-    private int numExpl = 0;
 
     private boolean esInaccesible;
 
@@ -185,12 +184,11 @@ public class m14C02Demonos extends Mouse {
 
         System.out.println("X: " + borderMap.first + "; Y: " + borderMap.second + ";");
         System.out.println("Casillas totales: " + tamMap);
-        System.out.println("Casillas exploradas: " + numExpl);
+        System.out.println("Casillas exploradas: " + maze.size());
 
         if (maze.containsKey(currentPos)) {
             currentNode = maze.get(currentPos);
         } else {
-            numExpl++;
             currentNode = new mouseNode(
                     currentPos,
                     currentGrid.canGoUp(), currentGrid.canGoDown(),
@@ -450,7 +448,7 @@ public class m14C02Demonos extends Mouse {
                 return i;
             }
 
-            double curValue = getValue(nodes.get(i).getPos(), target);
+            double curValue = getValue(nodes.get(i), target);
 
             if (curValue < minValue) {
                 minPos = i;
@@ -461,14 +459,14 @@ public class m14C02Demonos extends Mouse {
         return minPos;
     }
 
-    private double getValue(Pair<Integer, Integer> init, Pair<Integer, Integer> target) {
+    private double getValue(mouseNode init, Pair<Integer, Integer> target) {
 
-        double percentMapExplored = numExpl / tamMap;
+        double percentMapExplored = maze.size() / tamMap;
         double distQueso = Math.sqrt(
-         (target.first - init.first) * (target.first - init.first)
-         + (target.second - init.second) * (target.second - init.second)
+         (target.first - init.getPos().first) * (target.first - init.getPos().first)
+         + (target.second - init.getPos().second) * (target.second - init.getPos().second)
          );
-        int costeCasilla = maze.get(init.hashCode()).distancia;
+        int costeCasilla = init.distancia;
 
         return (1-percentMapExplored)*distQueso + percentMapExplored*costeCasilla;
     }
