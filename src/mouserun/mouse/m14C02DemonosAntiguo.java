@@ -3,7 +3,7 @@ package mouserun.mouse;
 import mouserun.game.*;
 import java.util.*;
 
-public class m14C02Demonos extends Mouse {
+public class m14C02DemonosAntiguo extends Mouse {
 
     //CLASES ANIDADAS
     //=============== 
@@ -146,27 +146,24 @@ public class m14C02Demonos extends Mouse {
     private Stack<Integer> camino;  //Contiene los movimientos a realizar. Bien para llegar a un Cheese,
     //o para llegar a una casilla no explorada.   
 
-    private List<mouseNode> noExploradasArea;
-
     private int moveCount;  //Cuenta los movimientos. Se reinicia al colocar una bomba.
     private int bombsLeft;  //Cuenta las bombas que quedan por poner.
 
-    public m14C02Demonos() {
-        super("Demonophobia");
+    public m14C02DemonosAntiguo() {
+        super("Xenophobia");
 
         moveCount = 0;
         bombsLeft = 5;
-        camino = new Stack<>();
-        noExploradasArea = new ArrayList<>();
-        maze = new HashMap<>();
-        calculados = new HashMap<>();
-        borderMap = new Pair<>(5, 5);
+        camino = new Stack();
+        maze = new HashMap();
+        calculados = new HashMap();
+        borderMap = new Pair(5, 5);
 
     }
 
     @Override
     public int move(Grid currentGrid, Cheese cheese) {
-        Pair<Integer, Integer> currentPos = new Pair<>(currentGrid.getX(), currentGrid.getY());
+        Pair<Integer, Integer> currentPos = new Pair(currentGrid.getX(), currentGrid.getY());
         mouseNode currentNode;
         if (cheese.getX() > borderMap.first) {
             borderMap.first = cheese.getX();
@@ -226,9 +223,7 @@ public class m14C02Demonos extends Mouse {
         }
 
         if (camino.isEmpty()) {
-            Pair<Integer, Integer> target = new Pair<>(cheese.getX(), cheese.getY());
-            getArea(target);
-            getCamino(currentNode, target);
+            getCamino(currentNode, new Pair(cheese.getX(), cheese.getY()));
         }
 
         return camino.pop();
@@ -237,7 +232,6 @@ public class m14C02Demonos extends Mouse {
     @Override
     public void newCheese() {
         camino.clear();
-        noExploradasArea.clear();
         calculados.clear();
         esInaccesible = false;
     }
@@ -245,87 +239,13 @@ public class m14C02Demonos extends Mouse {
     @Override
     public void respawned() {
         camino.clear();
-        noExploradasArea.clear();
         calculados.clear();
         esInaccesible = false;
     }
 
-    private void getArea(Pair<Integer, Integer> target) {
-        Queue<mouseNode> q = new LinkedList<>();
-        List<mouseNode> visitados = new ArrayList<>();
-        mouseNode w;
-
-        w = new mouseNode(target);
-        q.add(w);
-        visitados.add(w);
-
-        while (!q.isEmpty()) {
-            mouseNode v = q.poll();
-            mouseNode noExplorado;
-            Pair<Integer, Integer> targetPos;
-
-            //UP
-            targetPos = v.getPos();
-            if (v.y + 1 <= borderMap.second) {
-                targetPos.second++;
-
-                if (!maze.containsKey(targetPos)) {
-                    noExplorado = new mouseNode(targetPos);
-                    if (!visitados.contains(noExplorado)) {
-                        noExploradasArea.add(noExplorado);
-                        visitados.add(noExplorado);
-                    }
-                }
-            }
-
-            //DOWN
-            targetPos = v.getPos();
-            if (v.y - 1 >= 0) {
-                targetPos.second++;
-
-                if (!maze.containsKey(targetPos)) {
-                    noExplorado = new mouseNode(targetPos);
-                    if (!visitados.contains(noExplorado)) {
-                        noExploradasArea.add(noExplorado);
-                        visitados.add(noExplorado);
-                    }
-                }
-            }
-
-            //LEFT
-            targetPos = v.getPos();
-            if (v.x - 1 >= 0) {
-                targetPos.first--;
-
-                if (!maze.containsKey(targetPos)) {
-                    noExplorado = new mouseNode(targetPos);
-                    if (!visitados.contains(noExplorado)) {
-                        noExploradasArea.add(noExplorado);
-                        visitados.add(noExplorado);
-                    }
-                }
-            }
-
-            //RIGHT
-            targetPos = v.getPos();
-            if (v.x + 1 <= borderMap.first) {
-                targetPos.first++;
-
-                if (!maze.containsKey(targetPos)) {
-                    noExplorado = new mouseNode(targetPos);
-                    if (!visitados.contains(noExplorado)) {
-                        noExploradasArea.add(noExplorado);
-                        visitados.add(noExplorado);
-                    }
-                }
-            }
-        }
-    }
-
     private void getCamino(mouseNode rootNode, Pair<Integer, Integer> target) {
-        List<mouseNode> noExploradas = new ArrayList<>();
-        List<mouseNode> area = new ArrayList<>();
-        HashMap<Pair<Integer, Integer>, mouseNode> anteriores = getAnteriores(rootNode, target, noExploradas, area);
+        List<mouseNode> noExploradas = new ArrayList();
+        HashMap<Pair<Integer, Integer>, mouseNode> anteriores = getAnteriores(rootNode, target, noExploradas);
 
         mouseNode targetNode;
         mouseNode w;
@@ -333,15 +253,8 @@ public class m14C02Demonos extends Mouse {
         if (maze.containsKey(target) && anteriores.containsKey(target)) {
             targetNode = maze.get(target);
         } else {
-            int i;
-            if (!area.isEmpty()) {
-                i = getMinIndex(area, target);
-                targetNode = area.get(i);
-            } else {
-                i = getMinIndex(noExploradas, target);
-                targetNode = noExploradas.get(i);
-            }
-
+            int i = getMinIndex(noExploradas, target);
+            targetNode = noExploradas.get(i);
             esInaccesible = true;
         }
 
@@ -376,19 +289,24 @@ public class m14C02Demonos extends Mouse {
         w = anteriores.get(targetNode.getPos());
         camino.add(getDirection(w.getPos(), targetNode.getPos()));
 
-        while (w != rootNode) {
+        while (true) {
+            if (w == rootNode) {
+                break;
+            }
+
             Pair<Integer, Integer> targetPos = w.getPos();
             w = anteriores.get(w.getPos());
             camino.add(getDirection(w.getPos(), targetPos));
         }
     }
 
-    private HashMap<Pair<Integer, Integer>, mouseNode> getAnteriores(mouseNode rootNode, Pair<Integer, Integer> target, List<mouseNode> noExploradas, List<mouseNode> area) {
-        HashMap<Pair<Integer, Integer>, mouseNode> anteriores = new HashMap<>();
+    private HashMap<Pair<Integer, Integer>, mouseNode> getAnteriores(mouseNode rootNode, Pair<Integer, Integer> target, List<mouseNode> noExploradas) {
+        HashMap<Pair<Integer, Integer>, mouseNode> anteriores = new HashMap();
 
-        Queue<mouseNode> q = new LinkedList<>();
-        List<mouseNode> visitados = new ArrayList<>();
+        Queue<mouseNode> q = new LinkedList();
+        List<mouseNode> visitados = new ArrayList();
         boolean targetExplored = maze.containsKey(target);
+        boolean insertarNoExploradas = true;
 
         q.add(rootNode);
         visitados.add(rootNode);
@@ -398,6 +316,14 @@ public class m14C02Demonos extends Mouse {
         while (!q.isEmpty()) {
             mouseNode v = q.poll();
 
+            /*
+             if (!noExploradas.isEmpty()) {
+             insertarNoExploradas = false;
+             if (!targetExplored || esInaccesible == true) {
+             break;
+             }
+             }
+             */
             if (v.getPos() == target) {
                 break;
             }
@@ -422,14 +348,12 @@ public class m14C02Demonos extends Mouse {
                         w.distancia = v.distancia + 1;
                     }
                 } else {
-                    notExplored = new mouseNode(targetPos);
-                    visitados.add(notExplored);
-                    anteriores.put(notExplored.getPos(), v);
-                    noExploradas.add(notExplored);
-                    notExplored.distancia = v.distancia + 1;
-
-                    if (noExploradasArea.contains(notExplored)) {
-                        area.add(notExplored);
+                    if (insertarNoExploradas) {
+                        notExplored = new mouseNode(targetPos);
+                        visitados.add(notExplored);
+                        anteriores.put(notExplored.getPos(), v);
+                        noExploradas.add(notExplored);
+                        notExplored.distancia = v.distancia + 1;
                     }
                 }
             }
@@ -450,14 +374,12 @@ public class m14C02Demonos extends Mouse {
                         w.distancia = v.distancia + 1;
                     }
                 } else {
-                    notExplored = new mouseNode(targetPos);
-                    visitados.add(notExplored);
-                    anteriores.put(notExplored.getPos(), v);
-                    noExploradas.add(notExplored);
-                    notExplored.distancia = v.distancia + 1;
-
-                    if (noExploradasArea.contains(notExplored)) {
-                        area.add(notExplored);
+                    if (insertarNoExploradas) {
+                        notExplored = new mouseNode(targetPos);
+                        visitados.add(notExplored);
+                        anteriores.put(notExplored.getPos(), v);
+                        noExploradas.add(notExplored);
+                        notExplored.distancia = v.distancia + 1;
                     }
                 }
             }
@@ -478,14 +400,12 @@ public class m14C02Demonos extends Mouse {
                         w.distancia = v.distancia + 1;
                     }
                 } else {
-                    notExplored = new mouseNode(targetPos);
-                    visitados.add(notExplored);
-                    anteriores.put(notExplored.getPos(), v);
-                    noExploradas.add(notExplored);
-                    notExplored.distancia = v.distancia + 1;
-
-                    if (noExploradasArea.contains(notExplored)) {
-                        area.add(notExplored);
+                    if (insertarNoExploradas) {
+                        notExplored = new mouseNode(targetPos);
+                        visitados.add(notExplored);
+                        anteriores.put(notExplored.getPos(), v);
+                        noExploradas.add(notExplored);
+                        notExplored.distancia = v.distancia + 1;
                     }
                 }
             }
@@ -505,14 +425,12 @@ public class m14C02Demonos extends Mouse {
                         w.distancia = v.distancia + 1;
                     }
                 } else {
-                    notExplored = new mouseNode(targetPos);
-                    visitados.add(notExplored);
-                    anteriores.put(notExplored.getPos(), v);
-                    noExploradas.add(notExplored);
-                    notExplored.distancia = v.distancia + 1;
-
-                    if (noExploradasArea.contains(notExplored)) {
-                        area.add(notExplored);
+                    if (insertarNoExploradas) {
+                        notExplored = new mouseNode(targetPos);
+                        visitados.add(notExplored);
+                        anteriores.put(notExplored.getPos(), v);
+                        noExploradas.add(notExplored);
+                        notExplored.distancia = v.distancia + 1;
                     }
                 }
             }
