@@ -625,7 +625,7 @@ public class m14C02Demonos extends Mouse {
         );
         int costeCasilla = init.distancia;
 
-        if (costeCasilla <= 5) {
+        if (costeCasilla <= 3) {
             distQueso = distQueso * 0.1 * costeCasilla;
         }
 
