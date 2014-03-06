@@ -141,8 +141,6 @@ public class m14C02Demonos extends Mouse {
     private Pair<Integer, Integer> borderMap;
     private int tamMap = 25;
 
-    private boolean esInaccesible;
-
     private Stack<Integer> camino;  //Contiene los movimientos a realizar. Bien para llegar a un Cheese,
     //o para llegar a una casilla no explorada.   
 
@@ -197,6 +195,34 @@ public class m14C02Demonos extends Mouse {
             maze.put(currentPos, currentNode);
         }
 
+        if (cheese.getX() == currentNode.x && cheese.getY() == currentNode.y && camino.isEmpty()) {
+
+            // A veces el queso respawnea en la posición de nuestro ratón, pero no lo agarra.
+            // Esto hará que abandone la casilla y la vuelva a visitar para recoger el queso.
+            
+            if (currentGrid.canGoUp() == true) {
+                camino.add(Mouse.DOWN);
+                camino.add(Mouse.UP);
+            } else {
+                if (currentGrid.canGoDown() == true) {
+                    camino.add(Mouse.UP);
+                    camino.add(Mouse.DOWN);
+                } else {
+                    if (currentGrid.canGoLeft() == true) {
+                        camino.add(Mouse.RIGHT);
+                        camino.add(Mouse.LEFT);
+                    } else {
+                        if (currentGrid.canGoRight() == true) {
+                            camino.add(Mouse.LEFT);
+                            camino.add(Mouse.RIGHT);
+                        } else {
+                        }
+                    }
+                }
+            }
+            
+        }
+
         if (bombsLeft > 0) {
             int exitCount = 0;
             if (currentNode.up) {
@@ -239,7 +265,6 @@ public class m14C02Demonos extends Mouse {
         camino.clear();
         noExploradasArea.clear();
         calculados.clear();
-        esInaccesible = false;
     }
 
     @Override
@@ -247,7 +272,6 @@ public class m14C02Demonos extends Mouse {
         camino.clear();
         noExploradasArea.clear();
         calculados.clear();
-        esInaccesible = false;
     }
 
     private void getArea(Pair<Integer, Integer> target) {
@@ -342,36 +366,6 @@ public class m14C02Demonos extends Mouse {
                 i = getMinIndex(noExploradas, target);
                 targetNode = noExploradas.get(i);
             }
-
-            esInaccesible = true;
-        }
-
-        Pair<Integer, Integer> targetPosCalc = targetNode.getPos();
-
-        int countCalc = 0;
-
-        while (countCalc < 4) {
-            switch (countCalc) {
-                case 0:
-                    targetPosCalc.first++;
-                    break;
-                case 1:
-                    targetPosCalc.first -= 2;
-                    break;
-                case 2:
-                    targetPosCalc.first++;
-                    targetPosCalc.second++;
-                    break;
-                case 3:
-                    targetPosCalc.second -= 2;
-                    break;
-            }
-            if (!calculados.containsKey(targetPosCalc) && maze.containsKey(targetPosCalc)) {
-                if (maze.get(targetPosCalc).explored == true) {
-                    esInaccesible = false;
-                }
-            }
-            countCalc++;
         }
 
         w = anteriores.get(targetNode.getPos());
