@@ -545,11 +545,11 @@ public class m14C02Demonos extends Mouse {
         );
         int costeCasilla = init.distancia;
 
-        if (costeCasilla <= 1) {
-            distQueso = distQueso * 0.01;
+        if (costeCasilla <= 5) {
+            distQueso = distQueso * 0.1 * costeCasilla;
         }
 
-        return (1 - percentMapExplored) * distQueso + percentMapExplored * costeCasilla;
+        return (1 - percentMapExplored) * distQueso * 2 + percentMapExplored * costeCasilla;
     }
 
     private int getDirection(Pair<Integer, Integer> init, Pair<Integer, Integer> target) {
