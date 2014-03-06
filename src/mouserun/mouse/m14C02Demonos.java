@@ -76,7 +76,10 @@ public class m14C02Demonos extends Mouse {
         public boolean right;
 
         public boolean explored;
+
         public int distancia;
+        //Para cada camino generado, los nodos tendran un peso,
+        //basado en el nivel en que se encuentran 
 
         public mouseNode(int _x, int _y, boolean _up, boolean _down, boolean _left, boolean _right) {
             x = _x;
@@ -132,23 +135,34 @@ public class m14C02Demonos extends Mouse {
 
     //=============== 
     //FIN CLASES ANIDADAS
-    private HashMap<Pair<Integer, Integer>, mouseNode> maze; //Contiene los nodos conocidos del laberinto. 
-    //Usa una posición (x,y) como clave. Almacenada en un
-    //Pair de entero-entero
+    private HashMap<Pair<Integer, Integer>, mouseNode> maze;
+    //Contiene los nodos conocidos del laberinto. 
+    //Usa una posición (x,y) como clave.
+    //Almacenada en un Pair de entero-entero
 
     private HashMap<Pair<Integer, Integer>, mouseNode> calculados;
 
     private Pair<Integer, Integer> borderMap;
-    private int tamMap = 25;
+    //Almacena los límites conocidos del mapa.
+    //Se actualiza mediante la exploración y la
+    //generación de Cheeese.
 
-    private Stack<Integer> camino;  //Contiene los movimientos a realizar. Bien para llegar a un Cheese,
+    private int tamMap;
+    //Almacena el tamaño del mapa, basado en borderMap
+
+    private Stack<Integer> camino;
+    //Contiene los movimientos a realizar. Bien para llegar a un Cheese,
     //o para llegar a una casilla no explorada.   
 
     private List<mouseNode> noExploradasArea;
+    //Contiene las casillas no exploradas que bordean 
+    //la casilla donde está el Cheese.
 
     private int moveCount;  //Cuenta los movimientos. Se reinicia al colocar una bomba.
     private int bombsLeft;  //Cuenta las bombas que quedan por poner.
 
+    //CONSTRUCTOR
+    //===========
     public m14C02Demonos() {
         super("Demonophobia");
 
@@ -159,13 +173,16 @@ public class m14C02Demonos extends Mouse {
         maze = new HashMap<>();
         calculados = new HashMap<>();
         borderMap = new Pair<>(5, 5);
-
+        tamMap = borderMap.first * borderMap.second;
     }
 
     @Override
     public int move(Grid currentGrid, Cheese cheese) {
+        //Creamos un Pair, con la posición actual y una referancia a un mouseNode
         Pair<Integer, Integer> currentPos = new Pair<>(currentGrid.getX(), currentGrid.getY());
         mouseNode currentNode;
+
+        //Actualizamos los bordes del mapa, con la posición y las coordenadas del Cheese
         if (cheese.getX() > borderMap.first) {
             borderMap.first = cheese.getX();
             tamMap = (borderMap.first + 1) * (borderMap.second + 1);
@@ -183,6 +200,8 @@ public class m14C02Demonos extends Mouse {
             tamMap = (borderMap.first + 1) * (borderMap.second + 1);
         }
 
+        //Buscamos en maze la posición actual. Si está, currentNode será el nodo almacenado
+        //en caso contrario, se crea un nuevo nodo y se almacena.
         if (maze.containsKey(currentPos)) {
             currentNode = maze.get(currentPos);
         } else {
@@ -195,36 +214,36 @@ public class m14C02Demonos extends Mouse {
             maze.put(currentPos, currentNode);
         }
 
+        //En caso de que nos encontremos en la casilla del cheese,
+        //abandonamos la casilla y volvemos a ella
         if (cheese.getX() == currentNode.x && cheese.getY() == currentNode.y && camino.isEmpty()) {
-
-            // A veces el queso respawnea en la posición de nuestro ratón, pero no lo agarra.
-            // Esto hará que abandone la casilla y la vuelva a visitar para recoger el queso.
-            
-            if (currentGrid.canGoUp() == true) {
+            if (currentGrid.canGoUp()) {
                 camino.add(Mouse.DOWN);
                 camino.add(Mouse.UP);
             } else {
-                if (currentGrid.canGoDown() == true) {
+                if (currentGrid.canGoDown()) {
                     camino.add(Mouse.UP);
                     camino.add(Mouse.DOWN);
                 } else {
-                    if (currentGrid.canGoLeft() == true) {
+                    if (currentGrid.canGoLeft()) {
                         camino.add(Mouse.RIGHT);
                         camino.add(Mouse.LEFT);
                     } else {
-                        if (currentGrid.canGoRight() == true) {
+                        if (currentGrid.canGoRight()) {
                             camino.add(Mouse.LEFT);
                             camino.add(Mouse.RIGHT);
-                        } else {
                         }
                     }
                 }
             }
-            
         }
 
+        //Comprobamos si quedan bombas
         if (bombsLeft > 0) {
             int exitCount = 0;
+            //Almacena la cantidad de direcciones por las que
+            //se puede avanzar, desde el nodo actual.
+
             if (currentNode.up) {
                 exitCount++;
             }
@@ -238,12 +257,16 @@ public class m14C02Demonos extends Mouse {
                 exitCount++;
             }
 
+            //Según el número de movimientos y el número de salidas, se decide
+            //si colocar, o no, una bomba.
             if (moveCount > 30 && exitCount > 3) {
                 moveCount = 0;
+                bombsLeft--;
                 return Mouse.BOMB;
             } else {
                 if (moveCount > 100 && exitCount > 2) {
                     moveCount = 0;
+                    bombsLeft--;
                     return Mouse.BOMB;
                 } else {
                     moveCount++;
@@ -251,10 +274,19 @@ public class m14C02Demonos extends Mouse {
             }
         }
 
+        //Si no hay ningún camino, generamos uno.
         if (camino.isEmpty()) {
             Pair<Integer, Integer> target = new Pair<>(cheese.getX(), cheese.getY());
-            getArea(target);
+
+            if (noExploradasArea.isEmpty()) {
+                getArea(target);
+                //Obtenemos el area de casillas no exploradas
+                //que rodean al Cheese.
+            }
+
             getCamino(currentNode, target);
+            //Obtenemos un camino al Cheese
+            //o a una casilla no explorada.
         }
 
         return camino.pop();
@@ -274,6 +306,12 @@ public class m14C02Demonos extends Mouse {
         calculados.clear();
     }
 
+    /**
+     * Emplea una búsqueda en anchura, a partir de target, y almacena las
+     * casillas no exploradas que lo rodean en noExploradasArea.
+     *
+     * @param target Posición objetivo.
+     */
     private void getArea(Pair<Integer, Integer> target) {
         Queue<mouseNode> q = new LinkedList<>();
         List<mouseNode> visitados = new ArrayList<>();
@@ -284,6 +322,8 @@ public class m14C02Demonos extends Mouse {
         visitados.add(w);
         noExploradasArea.add(w);
 
+        //Expandiremos nodos, hasta que todas las casillas que encontremos
+        //sean casillas exploradas, o nos salgamos de los límites conocidos
         while (!q.isEmpty()) {
             mouseNode v = q.poll();
             mouseNode noExplorado;
@@ -347,14 +387,27 @@ public class m14C02Demonos extends Mouse {
         }
     }
 
+    /**
+     * Empleamos una búsqueda en anchura, para obtener el camino a target, o a
+     * una casilla no explorada.
+     *
+     * @param rootNode Nodo inicial, del que parte la búsqueda
+     * @param target Posición objetivo
+     */
     private void getCamino(mouseNode rootNode, Pair<Integer, Integer> target) {
         List<mouseNode> noExploradas = new ArrayList<>();
         List<mouseNode> area = new ArrayList<>();
+        //Almacena las casillas de noExploradasArea que son accesibles
+
+        //Obtenemos un nuevo HasMap, que contiene el nodo anterior al dado.
+        //De esta manera obtenemos el camino.
         HashMap<Pair<Integer, Integer>, mouseNode> anteriores = getAnteriores(rootNode, target, noExploradas, area);
 
         mouseNode targetNode;
         mouseNode w;
 
+        //Comprobamos si tenemos camino directo al target, en caso contrario
+        //elegimos una casilla no explorada de noExploradas o area.
         if (maze.containsKey(target) && anteriores.containsKey(target)) {
             targetNode = maze.get(target);
         } else {
@@ -368,6 +421,7 @@ public class m14C02Demonos extends Mouse {
             }
         }
 
+        //Finalmente obtenemos el camino al targetNode obtenido.
         w = anteriores.get(targetNode.getPos());
         camino.add(getDirection(w.getPos(), targetNode.getPos()));
 
@@ -378,12 +432,22 @@ public class m14C02Demonos extends Mouse {
         }
     }
 
+    /**
+     * Obtiene los predecesores de los nodos, para poder calcular el camino
+     * posteriormente. Realiza una búsqueda en anchura.
+     *
+     * @param rootNode nodo inicial
+     * @param target posición objetivo
+     * @param noExploradas lista de nodos no explorados accesibles
+     * @param area lista de nodos no explorados de noExploradasArea, accesibles
+     * @return Devuelve un HashMap de Pair<Integer, Integer> y mouseNode. Este
+     * contiene el nodo anterior a la posición pasada como clave.
+     */
     private HashMap<Pair<Integer, Integer>, mouseNode> getAnteriores(mouseNode rootNode, Pair<Integer, Integer> target, List<mouseNode> noExploradas, List<mouseNode> area) {
         HashMap<Pair<Integer, Integer>, mouseNode> anteriores = new HashMap<>();
 
         Queue<mouseNode> q = new LinkedList<>();
         List<mouseNode> visitados = new ArrayList<>();
-        boolean targetExplored = maze.containsKey(target);
 
         q.add(rootNode);
         visitados.add(rootNode);
@@ -516,6 +580,14 @@ public class m14C02Demonos extends Mouse {
         return anteriores;
     }
 
+    /**
+     * Dada una lista de nodos, emplea una función heurística para encontrar el
+     * nodo con menor valor y devuelve su índice.
+     *
+     * @param nodes lista de nodos candidatos
+     * @param target posición objetivo
+     * @return Devuelve el índice de la lista nodes con menor valor.
+     */
     private int getMinIndex(List<mouseNode> nodes, Pair<Integer, Integer> target) {
         double minValue = 9e99;
         int minPos = 0;
@@ -536,6 +608,14 @@ public class m14C02Demonos extends Mouse {
         return minPos;
     }
 
+    /**
+     * El nodo de entrada es evaluado, respecto a target, mediante una función
+     * heurística y se devuelve el resultado
+     *
+     * @param init nodo a calcular
+     * @param target posición objetivo
+     * @return Valor de la función heurística.
+     */
     private double getValue(mouseNode init, Pair<Integer, Integer> target) {
 
         double percentMapExplored = maze.size() / tamMap;
@@ -552,6 +632,14 @@ public class m14C02Demonos extends Mouse {
         return (1 - percentMapExplored) * distQueso * 2 + percentMapExplored * costeCasilla;
     }
 
+    /**
+     * Dadas dos posiciones, devuelve la dirección a seguir por el ratón para
+     * llegar de una a otra.
+     *
+     * @param init posición inicial
+     * @param target posición destino
+     * @return Movimiento para ir de init a target.
+     */
     private int getDirection(Pair<Integer, Integer> init, Pair<Integer, Integer> target) {
         if (target.second - 1 == init.second) {
             return Mouse.UP;
