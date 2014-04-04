@@ -242,7 +242,7 @@ public class m14C02Demonos extends Mouse {
             Pair<Integer, Integer> target = new Pair<>(cheese.getX(), cheese.getY());
 
             if (maze.containsKey(target)) {
-                informativeSearch = true;  
+                informativeSearch = true;
                 //Si sabemos donde está el objetivo,
                 //usamos A* (puede fallar, esto se considerará
                 //más adelante)
@@ -255,7 +255,7 @@ public class m14C02Demonos extends Mouse {
             //Obtenemos un camino al Cheese
             //o a una casilla no explorada.
         }
-        
+
         return camino.pop();
     }
 
@@ -275,221 +275,221 @@ public class m14C02Demonos extends Mouse {
         mouseNode targetNode = null;
 
         //Llamadas a búsquedas
-        if (informativeSearch) {            
+        if (informativeSearch) {
             busquedaAStar(rootNode, target, anteriores);
             targetNode = maze.get(target); //El nodo objetivo es el mismo queso.
-        } else {         
+        } else {
             //Comenzamos con límite 5. Si no hay casillas sin explorar,
             //incrementamos dicho límite en 5 unidades.
-            
+
             int limite = 5;
             targetNode = null;
-            while(targetNode == null) {
+            while (targetNode == null) {
                 targetNode = busquedaProfundidadLimitada(rootNode, target, anteriores, limite);
                 limite += 5;
             }
         }
-        
+
         //Si A* seleccionado, pero target inaccesible, empleamos la búsqueda de exploración.
         if (informativeSearch && !anteriores.containsKey(target)) {
             //Conocemos la posición del queso, pero es inaccesible.
             //El A* no llega a él.
-            
+
             int limite = 5;
             targetNode = null;
-            while(targetNode == null) {
+            while (targetNode == null) {
                 targetNode = busquedaProfundidadLimitada(rootNode, target, anteriores, limite);
                 limite += 5;
             }
         }
-        
+
         //Finalmente calculamos el camino al nodo objetivo          
-        mouseNode curNode = anteriores.get(targetNode.getPos());       
+        mouseNode curNode = anteriores.get(targetNode.getPos());
         camino.add(getDirection(curNode.getPos(), targetNode.getPos()));
-        
-        while (curNode != rootNode) {           
+
+        while (curNode != rootNode) {
             Pair<Integer, Integer> targetPos = curNode.getPos();
             curNode = anteriores.get(curNode.getPos());
             camino.add(getDirection(curNode.getPos(), targetPos));
         }
-        
-        
+
     }
-    
+
     /**
-     * Emplea la búsqueda A* para hallar un camino entre el nodo rootNode
-     * y la posición target.
-     * 
+     * Emplea la búsqueda A* para hallar un camino entre el nodo rootNode y la
+     * posición target.
+     *
      * @param rootNode nodo inicial.
      * @param target posición objetivo.
      * @param anteriores almacena el nodo antecesor a una posición dada.
      */
     void busquedaAStar(mouseNode rootNode, Pair<Integer, Integer> target, HashMap<Pair<Integer, Integer>, mouseNode> anteriores) {
         List<Pair<Integer, mouseNode>> abiertos = new LinkedList<>();
-        HashMap<Pair<Integer,Integer>, mouseNode> cerrados = new HashMap<>();
-        
-        abiertos.add( new Pair<>(0, rootNode));
-        
-        while(!abiertos.isEmpty()) {
-            int min = 9999;   
+        HashMap<Pair<Integer, Integer>, mouseNode> cerrados = new HashMap<>();
+
+        abiertos.add(new Pair<>(0, rootNode));
+
+        while (!abiertos.isEmpty()) {
+            int min = 9999;
             int minIndex = 0;
-            
-            for(int i = 0; i < abiertos.size(); i++){
+
+            for (int i = 0; i < abiertos.size(); i++) {
                 Pair<Integer, mouseNode> w = abiertos.get(i);
-                if(w.second.getPos() == target){
+                if (w.second.getPos() == target) {
                     minIndex = i;
                     break;
                 }
-                
+
                 int curValue = w.first + distanciaManhattam(w.second.getPos(), target);
-                if(curValue < min) {
+                if (curValue < min) {
                     min = curValue;
                     minIndex = i;
                 }
             }
-            
-           Pair<Integer, mouseNode> v = abiertos.get(minIndex);
-           abiertos.remove(v);
-           cerrados.put(v.second.getPos(), v.second);
-           int nivel = v.first + 1;
-           
-           if(v.second.x == target.first && v.second.y == target.second) {               
-               break;
-           }
-           
-           //DOWN
-           if(v.second.down) {
-               Pair<Integer, Integer> curPos = v.second.getPos();
-               curPos.second--;
-               
-               if(maze.containsKey(curPos)) {
-                   mouseNode w = maze.get(curPos);                       
-                   Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
-                    if(!cerrados.containsKey(insert.second.getPos())) {                        
-                            abiertos.add(insert);
-                            anteriores.put(w.getPos(), v.second);
-                        }
-               }
-           }
-           
-           //LEFT
-           if(v.second.left) {
-               Pair<Integer, Integer> curPos = v.second.getPos();
-               curPos.first--;
-               
-               if(maze.containsKey(curPos)) {
-                   mouseNode w = maze.get(curPos);                       
-                   Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
-                    if(!cerrados.containsKey(insert.second.getPos())) {                        
-                            abiertos.add(insert);
-                            anteriores.put(w.getPos(), v.second);
-                        }
-               }
-           }
-           
-           //RIGHT
-           if(v.second.right) {
-               Pair<Integer, Integer> curPos = v.second.getPos();
-               curPos.first++;
-               
-               if(maze.containsKey(curPos)) {
-                   mouseNode w = maze.get(curPos);                       
-                   Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
-                    if(!cerrados.containsKey(insert.second.getPos())) {                        
-                            abiertos.add(insert);
-                            anteriores.put(w.getPos(), v.second);
-                        }
-               }
-           }
-           
-           //UP
-           if(v.second.up) {
-               Pair<Integer, Integer> curPos = v.second.getPos();
-               curPos.second++;
-               
-               if(maze.containsKey(curPos)) {
-                   mouseNode w = maze.get(curPos);                       
-                   Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
-                    if(!cerrados.containsKey(insert.second.getPos())) {                        
-                            abiertos.add(insert);
-                            anteriores.put(w.getPos(), v.second);
-                        }
-               }
-           }
+
+            Pair<Integer, mouseNode> v = abiertos.get(minIndex);
+            abiertos.remove(v);
+            cerrados.put(v.second.getPos(), v.second);
+            int nivel = v.first + 1;
+
+            if (v.second.x == target.first && v.second.y == target.second) {
+                break;
+            }
+
+            //DOWN
+            if (v.second.down) {
+                Pair<Integer, Integer> curPos = v.second.getPos();
+                curPos.second--;
+
+                if (maze.containsKey(curPos)) {
+                    mouseNode w = maze.get(curPos);
+                    Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
+                    if (!cerrados.containsKey(insert.second.getPos())) {
+                        abiertos.add(insert);
+                        anteriores.put(w.getPos(), v.second);
+                    }
+                }
+            }
+
+            //LEFT
+            if (v.second.left) {
+                Pair<Integer, Integer> curPos = v.second.getPos();
+                curPos.first--;
+
+                if (maze.containsKey(curPos)) {
+                    mouseNode w = maze.get(curPos);
+                    Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
+                    if (!cerrados.containsKey(insert.second.getPos())) {
+                        abiertos.add(insert);
+                        anteriores.put(w.getPos(), v.second);
+                    }
+                }
+            }
+
+            //RIGHT
+            if (v.second.right) {
+                Pair<Integer, Integer> curPos = v.second.getPos();
+                curPos.first++;
+
+                if (maze.containsKey(curPos)) {
+                    mouseNode w = maze.get(curPos);
+                    Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
+                    if (!cerrados.containsKey(insert.second.getPos())) {
+                        abiertos.add(insert);
+                        anteriores.put(w.getPos(), v.second);
+                    }
+                }
+            }
+
+            //UP
+            if (v.second.up) {
+                Pair<Integer, Integer> curPos = v.second.getPos();
+                curPos.second++;
+
+                if (maze.containsKey(curPos)) {
+                    mouseNode w = maze.get(curPos);
+                    Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
+                    if (!cerrados.containsKey(insert.second.getPos())) {
+                        abiertos.add(insert);
+                        anteriores.put(w.getPos(), v.second);
+                    }
+                }
+            }
         }
     }
 
     /**
-     * 
+     *
      * Realiza una búsqueda en profundidad limitada. Almacenara los antecesores
      * de cada nodo para poder calcular el camino y manejará una lista de nodos
-     * candidatos, no explorados exclusivamente, que se emplearán en el
-     * cálculo del nodo a devolver.
-     * 
+     * candidatos, no explorados exclusivamente, que se emplearán en el cálculo
+     * del nodo a devolver.
+     *
      * @param rootNode Nodo inicial.
-     * @param target  Posición objetivo.
+     * @param target Posición objetivo.
      * @param anteriores Almacena el nodo anterior de cada posición.
      * @param limite Limite de la busqueda
-     * @return null si no hay casillas objetivo sino, mejor nodo candidato calculada.
+     * @return null si no hay casillas objetivo sino, mejor nodo candidato
+     * calculada.
      */
     mouseNode busquedaProfundidadLimitada(mouseNode rootNode, Pair<Integer, Integer> target, HashMap<Pair<Integer, Integer>, mouseNode> anteriores, int limite) {
-        Stack<Pair<Integer,mouseNode>> abiertos = new Stack<>();        
-        HashMap<Pair<Integer,Integer>, mouseNode> cerrados = new HashMap<>();
-        List<Pair<Integer,mouseNode>> candidatos = new LinkedList<>();    
-        
+        Stack<Pair<Integer, mouseNode>> abiertos = new Stack<>();
+        HashMap<Pair<Integer, Integer>, mouseNode> cerrados = new HashMap<>();
+        List<Pair<Integer, mouseNode>> candidatos = new LinkedList<>();
+
         abiertos.add(new Pair<>(0, rootNode));
-       
-        while(!abiertos.isEmpty()) {            
+
+        while (!abiertos.isEmpty()) {
             Pair<Integer, mouseNode> v = abiertos.pop();
             cerrados.put(v.second.getPos(), v.second);
-            
+
             int nivel = v.first + 1;
-            
-            if(v.second.x == target.first && v.second.y == target.second) {               
+
+            if (v.second.x == target.first && v.second.y == target.second) {
                 candidatos.add(v);
                 break;
-           }
-            
-            if(v.second.explored) {
+            }
+
+            if (v.second.explored) {
                 //DOWN
-                if(v.second.down) {
+                if (v.second.down) {
                     Pair<Integer, Integer> curPos = v.second.getPos();
                     curPos.second--;
-                    
-                    if(maze.containsKey(curPos)) {
-                        mouseNode w = maze.get(curPos);                       
+
+                    if (maze.containsKey(curPos)) {
+                        mouseNode w = maze.get(curPos);
                         Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
-                        if(nivel <= limite && !cerrados.containsKey(insert.second.getPos())) {                            
+                        if (nivel <= limite && !cerrados.containsKey(insert.second.getPos())) {
                             abiertos.add(insert);
                             anteriores.put(w.getPos(), v.second);
                         }
                     } else {
-                        mouseNode w = new mouseNode(curPos);                        
+                        mouseNode w = new mouseNode(curPos);
                         Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
-                        if(nivel <= limite && !cerrados.containsKey(insert.second.getPos())) {
+                        if (nivel <= limite && !cerrados.containsKey(insert.second.getPos())) {
                             abiertos.add(insert);
                             anteriores.put(w.getPos(), v.second);
                             candidatos.add(insert);
                         }
                     }
                 }
-                
+
                 //LEFT
-                if(v.second.left) {
+                if (v.second.left) {
                     Pair<Integer, Integer> curPos = v.second.getPos();
                     curPos.first--;
-                    
-                    if(maze.containsKey(curPos)) {
-                        mouseNode w = maze.get(curPos);                       
+
+                    if (maze.containsKey(curPos)) {
+                        mouseNode w = maze.get(curPos);
                         Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
-                        if(nivel <= limite && !cerrados.containsKey(insert.second.getPos())) {                            
+                        if (nivel <= limite && !cerrados.containsKey(insert.second.getPos())) {
                             abiertos.add(insert);
                             anteriores.put(w.getPos(), v.second);
                         }
                     } else {
-                        mouseNode w = new mouseNode(curPos);                        
+                        mouseNode w = new mouseNode(curPos);
                         Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
-                        if(nivel <= limite && !cerrados.containsKey(insert.second.getPos())) {
+                        if (nivel <= limite && !cerrados.containsKey(insert.second.getPos())) {
                             abiertos.add(insert);
                             anteriores.put(w.getPos(), v.second);
                             candidatos.add(insert);
@@ -497,56 +497,58 @@ public class m14C02Demonos extends Mouse {
                     }
                 }
             }
-            
+
             //RIGHT
-            if(v.second.right) {
-                    Pair<Integer, Integer> curPos = v.second.getPos();
-                    curPos.first++;
-                    
-                    if(maze.containsKey(curPos)) {
-                        mouseNode w = maze.get(curPos);                       
-                        Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
-                        if(nivel <= limite && !cerrados.containsKey(insert.second.getPos())) {                            
-                            abiertos.add(insert);
-                            anteriores.put(w.getPos(), v.second);
-                        }
-                    } else {
-                        mouseNode w = new mouseNode(curPos);                        
-                        Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
-                        if(nivel <= limite && !cerrados.containsKey(insert.second.getPos())) {
-                            abiertos.add(insert);
-                            anteriores.put(w.getPos(), v.second);
-                            candidatos.add(insert);
-                        }
+            if (v.second.right) {
+                Pair<Integer, Integer> curPos = v.second.getPos();
+                curPos.first++;
+
+                if (maze.containsKey(curPos)) {
+                    mouseNode w = maze.get(curPos);
+                    Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
+                    if (nivel <= limite && !cerrados.containsKey(insert.second.getPos())) {
+                        abiertos.add(insert);
+                        anteriores.put(w.getPos(), v.second);
                     }
+                } else {
+                    mouseNode w = new mouseNode(curPos);
+                    Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
+                    if (nivel <= limite && !cerrados.containsKey(insert.second.getPos())) {
+                        abiertos.add(insert);
+                        anteriores.put(w.getPos(), v.second);
+                        candidatos.add(insert);
+                    }
+                }
             }
-            
+
             //UP
-            if(v.second.up) {
-                    Pair<Integer, Integer> curPos = v.second.getPos();
-                    curPos.second++;
-                    
-                    if(maze.containsKey(curPos)) {
-                        mouseNode w = maze.get(curPos);                       
-                        Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
-                        if(nivel <= limite && !cerrados.containsKey(insert.second.getPos())) {                            
-                            abiertos.add(insert);
-                            anteriores.put(w.getPos(), v.second);
-                        }
-                    } else {
-                        mouseNode w = new mouseNode(curPos);                        
-                        Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
-                        if(nivel <= limite && !cerrados.containsKey(insert.second.getPos())) {
-                            abiertos.add(insert);
-                            anteriores.put(w.getPos(), v.second);
-                            candidatos.add(insert);
-                        }
+            if (v.second.up) {
+                Pair<Integer, Integer> curPos = v.second.getPos();
+                curPos.second++;
+
+                if (maze.containsKey(curPos)) {
+                    mouseNode w = maze.get(curPos);
+                    Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
+                    if (nivel <= limite && !cerrados.containsKey(insert.second.getPos())) {
+                        abiertos.add(insert);
+                        anteriores.put(w.getPos(), v.second);
                     }
+                } else {
+                    mouseNode w = new mouseNode(curPos);
+                    Pair<Integer, mouseNode> insert = new Pair<>(nivel, w);
+                    if (nivel <= limite && !cerrados.containsKey(insert.second.getPos())) {
+                        abiertos.add(insert);
+                        anteriores.put(w.getPos(), v.second);
+                        candidatos.add(insert);
+                    }
+                }
             }
-        }      
-        
-        int targetIndex = getMinIndex(candidatos, target, rootNode);   
-        if(targetIndex == -1) return null;
+        }
+
+        int targetIndex = getMinIndex(candidatos, target, rootNode);
+        if (targetIndex == -1) {
+            return null;
+        }
         return candidatos.get(targetIndex).second;
     }
 
@@ -562,29 +564,30 @@ public class m14C02Demonos extends Mouse {
      * @param target posición objetivo
      * @return Devuelve el índice de la lista nodes con menor valor.
      */
-    private int getMinIndex(List<Pair<Integer, mouseNode>> nodes, Pair<Integer, Integer> target, mouseNode init) {       
-        if(nodes.isEmpty())
+    private int getMinIndex(List<Pair<Integer, mouseNode>> nodes, Pair<Integer, Integer> target, mouseNode init) {
+        if (nodes.isEmpty()) {
             return -1;
-        
+        }
+
         int minValue = 99999;
         int minPos = 0;
 
-        for (int i = 0; i < nodes.size(); i++) {             
-            if(nodes.get(i).second == init) {                
+        for (int i = 0; i < nodes.size(); i++) {
+            if (nodes.get(i).second == init) {
                 continue;
             }
             if (nodes.get(i).second.getPos() == target) {
                 return i;
             }
 
-            int curValue = getValue(nodes.get(i), target);            
+            int curValue = getValue(nodes.get(i), target);
 
             if (curValue < minValue) {
                 minPos = i;
                 minValue = curValue;
-            }           
-        }    
-        
+            }
+        }
+
         return minPos;
     }
 
